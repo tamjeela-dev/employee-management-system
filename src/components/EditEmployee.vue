@@ -1,6 +1,7 @@
 <template>
     <NavBar />
     <div class="container-fluid">
+        <p class="alert alert-danger" v-if="error">{{ error }}</p>
         <div class="row">
             <div class="col-lg-6">
                 <h3>Edit Employee</h3>
@@ -12,8 +13,8 @@
                         <option value="female">Female</option>
                     </select> <br><br>
                     <input class="mb-4 form-control" type="number" v-model="age"><br>
-                    <button type="submit" class="btn btn-primary">
-                        Update
+                    <button type="submit" class="btn btn-primary" :disabled="loading">
+                        {{ loading ? 'Updating Employee...' : 'update' }}
                     </button>
                 </form>
             </div>
@@ -37,34 +38,50 @@ export default {
             email: '',
             gender: '',
             age: '',
-            // error: '',
+            error: '',
+            loading: false,
         }
     },
     async mounted() {
-        const id = this.$route.params.id
-        console.log(id);
-
-        const result = await axios.get(`https://dummyjson.com/users/${id}`)
-        console.log(result.data);
-        this.firstName = result.data.firstName
-        this.email = result.data.email
-        this.gender = result.data.gender
-        this.age = result.data.age
+        try {
+            const id = this.$route.params.id
+            console.log(id);
+            const result = await axios.get(`https://dummyjson.com/users/${id}`)
+            console.log(result.data);
+            this.firstName = result.data.firstName
+            this.email = result.data.email
+            this.gender = result.data.gender
+            this.age = result.data.age
+        } catch (error) {
+            this.error = 'Failed to load employee data.'
+        }
     },
     methods: {
         async editEmployee() {
-            const id = this.$route.params.id
-            console.log(id);
+            this.error = '';
+            try {
+                if (!this.firstName || !this.email || !this.gender || !this.age) {
+                    this.error = "Please fill all fields.";
+                    return;
+                }
+                const id = this.$route.params.id
+                console.log(id);
 
-            const result = await axios.put(`https://dummyjson.com/users/${id}`, {
-                firstName: this.firstName,
-                email: this.email,
-                gender: this.gender,
-                age: this.age
-                
-            });
-            this.$router.push('/users')
-            console.log(result.data);
+                this.loading = true;
+                const result = await axios.put(`https://dummyjson.com/users/${id}`, {
+                    firstName: this.firstName,
+                    email: this.email,
+                    gender: this.gender,
+                    age: this.age
+
+                });
+                this.loading = false;
+                this.$router.push('/users')
+                console.log(result.data);
+            } catch (error) {
+                this.error = 'Failed to update employee.'
+                this.loading = false;
+            }
         }
     }
 }

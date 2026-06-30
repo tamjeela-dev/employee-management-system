@@ -3,8 +3,6 @@
 </script>
 
 <template>
- 
- <!-- <Dashboard /> -->
 
  <router-view />
 </template>

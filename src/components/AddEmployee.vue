@@ -1,6 +1,7 @@
 <template>
     <NavBar />
     <div class="container-fluid">
+        <p class="alert alert-danger" v-if="error">{{ error }}</p>
         <div class="row">
             <div class="col-lg-6">
                 <h3>Add Employee</h3>
@@ -12,8 +13,8 @@
                         <option value="female">Female</option>
                     </select> <br><br>
                     <input class="mb-4 form-control" type="number" v-model="age"><br>
-                    <button type="submit" class="btn btn-primary">
-                        Add Employee
+                    <button type="submit" class="btn btn-primary" :disabled="loading">
+                        {{ loading ? 'Adding Employee...' : 'Add Employee' }}
                     </button>
                 </form>
             </div>
@@ -37,11 +38,17 @@ export default {
             gender: '',
             age: '',
             error: '',
+            loading: false,
         }
     },
     methods: {
         async addEmployee() {
             try {
+                if (!this.firstName || !this.email || !this.gender || !this.age) {
+                    this.error = "Please fill all fields.";
+                    return;
+                }
+                this.loading = true;
                 const result = await axios.post('https://dummyjson.com/users/add', {
                     firstName: this.firstName,
                     email: this.email,
@@ -49,9 +56,12 @@ export default {
                     age: this.age,
 
                 })
-                console.log(result.data)
+                console.log(result.data);
+                this.loading = false;
+                this.$router.push('/users')
             } catch (error) {
                 this.error = 'Failed to Add user details'
+                this.loading = false;
             }
         }
     }
